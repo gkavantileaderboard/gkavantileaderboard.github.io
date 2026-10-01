@@ -59,7 +59,7 @@ export function boardRows(list, admin) {
   const rows = rated.map((p, i) => {
     const b = BADGE[i];
     const badge = b ? `<span class="w-8 h-8 rounded-lg rank-${b[0]} inline-flex items-center justify-center text-xs"><i class="fa-solid fa-trophy"></i></span>` : "";
-    const num = `<td class="py-4 pl-4 pr-3 sm:pl-8 text-right w-12 font-mono text-zinc-300 font-semibold text-base sm:text-lg">${i + 1}</td><td class="py-4 pr-4 sm:pr-8 pl-3 text-left w-14">${badge}</td>`;
+    const num = `<td class="py-4 pl-4 pr-2 sm:pl-8 text-right w-14">${badge}</td><td class="py-4 pr-4 sm:pr-8 pl-2 text-left w-12 font-mono text-zinc-300 font-semibold text-base sm:text-lg">${i + 1}</td>`;
     return `<tr>${num}${idc(p)}${name(p)}${city(p)}${time(p, "t-" + (i < 3 ? i + 1 : 0))}${admin ? acts(p) : ""}</tr>`;
   });
   list.filter(p => p.timeMs == null).forEach(p =>
