@@ -44,7 +44,7 @@ export function fmt(ms) {
 }
 
 const TD = "py-4 px-4 sm:px-8";
-const BADGE = [["gold", "trophy"], ["silver", "medal"], ["bronze", "award"]];
+const BADGE = [["gold", "trophy"], ["silver", "trophy"], ["bronze", "trophy"]];
 const city = p => `<td class="${TD} text-zinc-300 text-sm sm:text-base"><i class="fa-solid fa-location-dot text-zinc-400 text-xs mr-2"></i>${esc(p.city)}</td>`;
 const idc = p => `<td class="${TD} text-center font-mono text-zinc-400 text-sm sm:text-base">${p.seqId ?? "—"}</td>`;
 const name = p => `<td class="${TD} font-medium text-white text-base sm:text-lg">${esc(p.name)}</td>`;

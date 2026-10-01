@@ -1,6 +1,7 @@
 [hidden]{display:none!important}
 body{font-family:'Inter',sans-serif;background:#09090b;color:#f4f4f5;min-height:100vh;display:flex;flex-direction:column;margin:0;overflow-x:hidden}
 .glass-card{background:rgba(18,18,22,.75);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08)}
+.solid-card{background:#18181b;border:1px solid rgba(255,255,255,.1)}
 .rank-gold{background:linear-gradient(135deg,rgba(234,179,8,.2),rgba(161,98,7,.3));border:1px solid rgba(234,179,8,.5);color:#facc15}
 .rank-silver{background:linear-gradient(135deg,rgba(226,232,240,.15),rgba(148,163,184,.25));border:1px solid rgba(226,232,240,.4);color:#f1f5f9}
 .rank-bronze{background:linear-gradient(135deg,rgba(217,119,6,.2),rgba(180,83,9,.3));border:1px solid rgba(217,119,6,.4);color:#fb923c}
