@@ -46,6 +46,7 @@ export function fmt(ms) {
 const TD = "py-4 px-4 sm:px-8";
 const BADGE = [["gold", "trophy"], ["silver", "medal"], ["bronze", "award"]];
 const city = p => `<td class="${TD} text-zinc-300 text-sm sm:text-base"><i class="fa-solid fa-location-dot text-zinc-400 text-xs mr-2"></i>${esc(p.city)}</td>`;
+const idc = p => `<td class="${TD} text-center font-mono text-zinc-400 text-sm sm:text-base">${p.seqId ?? "—"}</td>`;
 const name = p => `<td class="${TD} font-medium text-white text-base sm:text-lg">${esc(p.name)}</td>`;
 const time = (p, c) => `<td class="${TD} text-right font-mono font-semibold text-base sm:text-xl tracking-wide ${c}">${p.timeMs != null ? fmt(p.timeMs) : "—"}</td>`;
 const acts = p => `<td class="${TD} text-right whitespace-nowrap">
@@ -59,17 +60,20 @@ export function boardRows(list, admin) {
     const b = BADGE[i];
     const rank = b ? `<span class="w-8 h-8 rounded-lg rank-${b[0]} inline-flex items-center justify-center text-xs"><i class="fa-solid fa-${b[1]}"></i></span>`
       : `<span class="font-mono text-zinc-400 font-semibold">${i + 1}</span>`;
-    return `<tr><td class="${TD} text-center">${rank}</td>${name(p)}${city(p)}${time(p, "t-" + (i < 3 ? i + 1 : 0))}${admin ? acts(p) : ""}</tr>`;
+    return `<tr><td class="${TD} text-center">${rank}</td>${idc(p)}${name(p)}${city(p)}${time(p, "t-" + (i < 3 ? i + 1 : 0))}${admin ? acts(p) : ""}</tr>`;
   });
   list.filter(p => p.timeMs == null).forEach(p =>
-    rows.push(`<tr><td class="${TD} text-center text-zinc-600">—</td>${name(p)}${city(p)}${time(p, "t-0")}${admin ? acts(p) : ""}</tr>`));
-  return rows.join("") || `<tr><td colspan="5" class="py-10 text-center text-zinc-500">Пока нет результатов</td></tr>`;
+    rows.push(`<tr><td class="${TD} text-center text-zinc-600">—</td>${idc(p)}${name(p)}${city(p)}${time(p, "t-0")}${admin ? acts(p) : ""}</tr>`));
+  return rows.join("") || `<tr><td colspan="6" class="py-10 text-center text-zinc-500">Пока нет результатов</td></tr>`;
 }
 
 // Последние 5 добавленных участников
 export function recentRows(list, admin, n = 5) {
   const t = p => p.createdAt?.toMillis?.() ?? Date.now();
   return [...list].sort((a, b) => t(b) - t(a)).slice(0, n)
-    .map(p => `<tr>${name(p)}${city(p)}${time(p, "t-0")}${admin ? acts(p) : ""}</tr>`).join("")
-    || `<tr><td colspan="4" class="py-8 text-center text-zinc-500">Участников пока нет</td></tr>`;
+    .map(p => `<tr>${idc(p)}${name(p)}${city(p)}${time(p, "t-0")}${admin ? acts(p) : ""}</tr>`).join("")
+    || `<tr><td colspan="5" class="py-8 text-center text-zinc-500">Участников пока нет</td></tr>`;
 }
+
+// Следующий порядковый ID = максимальный существующий + 1
+export const nextSeq = list => list.reduce((m, p) => Math.max(m, Number(p.seqId) || 0), 0) + 1;
