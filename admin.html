@@ -76,22 +76,22 @@
 
 <script type="module">
 import { auth, db, collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp,
-  signInWithEmailAndPassword, signOut, onAuthStateChanged, watch, boardRows, recentRows, parseTime, fmt, nextSeq } from "./app.js";
+  signInWithEmailAndPassword, signOut, onAuthStateChanged, watch, boardRows, recentRows, parseTime, fmt } from "./app.js";
 const $ = id => document.getElementById(id);
+const nextSeq = l => l.reduce((m, p) => Math.max(m, Number(p.seqId) || 0), 0) + 1;
 let list = [], unsub = null, curId = null;
 
 // Одноразово выдаём ID тем, у кого его ещё нет (по порядку добавления)
-let migrating = false;
+let migrated = false; // только одна попытка за сессию, без повторов
 const migrate = async () => {
   const missing = list.filter(p => p.seqId == null);
-  if (!missing.length || migrating) return;
-  migrating = true;
+  if (!missing.length || migrated) return;
+  migrated = true;
   const t = p => p.createdAt?.toMillis?.() ?? 0;
   missing.sort((x, y) => t(x) - t(y));
   let n = nextSeq(list);
   try { for (const p of missing) await updateDoc(doc(db, "participants", p.id), { seqId: n++ }); }
-  catch (err) { console.error(err); }
-  migrating = false;
+  catch (err) { console.error("ID migration:", err); }
 };
 
 const render = () => {
@@ -103,7 +103,7 @@ onAuthStateChanged(auth, u => {
   $("login").hidden = !!u;
   $("panel").hidden = !u;
   $("logout").hidden = !u;
-  if (u && !unsub) unsub = watch(l => { list = l; render(); migrate(); });
+  if (u && !unsub) unsub = watch(l => { list = l; render(); migrate().catch(console.error); });
   if (!u && unsub) { unsub(); unsub = null; list = []; }
 });
 
