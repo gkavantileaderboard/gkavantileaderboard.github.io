@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Таблица результатов — GK Avanti</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="w-full select-none">
+<header class="w-full border-b border-white/10 glass-card py-4 px-6 sm:px-10 sticky top-0 z-30">
+  <div class="flex items-center justify-between">
+    <div id="logo" class="cursor-pointer transition-transform active:scale-95 py-1">
+      <img src="https://gkavanti.ru/logo-white.png" alt="GK Avanti" class="h-9 sm:h-12 w-auto object-contain"
+           onerror="this.onerror=null;this.src='https://placehold.co/180x50/18181b/ffffff?text=GK+AVANTI';">
+    </div>
+    <div class="flex items-center space-x-3">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+      <h1 class="text-lg sm:text-2xl font-bold uppercase tracking-wider text-white">ТАБЛИЦА РЕЗУЛЬТАТОВ</h1>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="w-full flex-grow px-4 sm:px-8 lg:px-10 py-6 sm:py-8 space-y-8">
+  <section class="glass-card rounded-2xl overflow-hidden shadow-2xl">
+    <div class="overflow-x-auto"><table class="w-full text-left border-collapse">
+      <thead><tr class="bg-zinc-900/90 text-zinc-400 text-xs sm:text-sm font-semibold uppercase tracking-wider border-b border-white/10">
+        <th class="py-4 px-4 sm:px-8 w-16 sm:w-24 text-center">№</th><th class="py-4 px-4 sm:px-8">Участник</th>
+        <th class="py-4 px-4 sm:px-8">Город</th><th class="py-4 px-4 sm:px-8 text-right">Время</th></tr></thead>
+      <tbody id="board" class="divide-y divide-white/5"></tbody>
+    </table></div>
+  </section>
+</main>
+
+<!-- Последние 3 участника: всегда внизу поверх всего, оформление как в админке -->
+<footer id="recent-bar" class="fixed bottom-0 inset-x-0 z-50 px-4 sm:px-8 lg:px-10 pt-8 pb-3 bg-gradient-to-t from-zinc-950 via-zinc-950/95 to-transparent pointer-events-none">
+  <h2 class="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-400 mb-3 px-1">Последние 3 участника</h2>
+  <div class="glass-card bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl pointer-events-auto"><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><tbody id="recent" class="divide-y divide-white/5"></tbody></table></div></div>
+</footer>
+
+<script type="module">
+import { watch, boardRows, recentRows } from "./app.js";
+watch(list => {
+  document.getElementById("board").innerHTML = boardRows(list, false);
+  document.getElementById("recent").innerHTML = recentRows(list, false, 3);
+});
+// Отступ снизу = высота плавающей панели, чтобы она ничего не перекрывала
+const bar = document.getElementById("recent-bar"), main = document.getElementById("main");
+const pad = () => main.style.paddingBottom = bar.offsetHeight + 16 + "px";
+new ResizeObserver(pad).observe(bar); pad();
+// 5 кликов по логотипу -> страница админа
+let n = 0, t;
+document.getElementById("logo").addEventListener("click", () => {
+  clearTimeout(t); t = setTimeout(() => n = 0, 2500);
+  if (++n >= 5) location.href = "admin.html";
+});
+</script>
+</body>
+</html>

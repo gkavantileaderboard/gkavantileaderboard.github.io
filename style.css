@@ -1,0 +1,20 @@
+[hidden]{display:none!important}
+body{font-family:'Inter',sans-serif;background:#09090b;color:#f4f4f5;min-height:100vh;display:flex;flex-direction:column;margin:0;overflow-x:hidden}
+.glass-card{background:rgba(18,18,22,.75);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08)}
+.rank-gold{background:linear-gradient(135deg,rgba(234,179,8,.2),rgba(161,98,7,.3));border:1px solid rgba(234,179,8,.5);color:#facc15}
+.rank-silver{background:linear-gradient(135deg,rgba(226,232,240,.15),rgba(148,163,184,.25));border:1px solid rgba(226,232,240,.4);color:#f1f5f9}
+.rank-bronze{background:linear-gradient(135deg,rgba(217,119,6,.2),rgba(180,83,9,.3));border:1px solid rgba(217,119,6,.4);color:#fb923c}
+/* Время подсвечивается по месту */
+.t-1{color:#facc15;text-shadow:0 0 14px rgba(250,204,21,.35)}
+.t-2{color:#e2e8f0;text-shadow:0 0 14px rgba(226,232,240,.25)}
+.t-3{color:#fb923c;text-shadow:0 0 14px rgba(251,146,60,.3)}
+.t-0{color:#d4d4d8}
+tbody tr:nth-child(even){background:rgba(255,255,255,.015)}
+dialog{margin:auto;padding:0;background:transparent;color:inherit;border:0;width:100%;max-width:28rem}
+dialog::backdrop{background:rgba(0,0,0,.8);backdrop-filter:blur(4px)}
+.inp{width:100%;padding:.6rem 1rem;background:#09090b;border:1px solid rgba(255,255,255,.1);border-radius:.75rem;color:#fff;font-size:.875rem;outline:none}
+.inp:focus{box-shadow:0 0 0 1px #fff}
+.btn{padding:.5rem 1.1rem;border-radius:.75rem;border:1px solid rgba(255,255,255,.1);color:#d4d4d8;font-size:.8rem;font-weight:500}
+.btn:hover{background:rgba(255,255,255,.06);color:#fff}
+.btn-w{background:#fff;color:#000;border-color:#fff;font-weight:600}
+.btn-w:hover{background:#e4e4e7;color:#000}

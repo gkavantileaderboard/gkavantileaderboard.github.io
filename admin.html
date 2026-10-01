@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Админ — GK Avanti</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],mono:['JetBrains Mono','monospace']}}}}</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="w-full">
+<header class="w-full border-b border-white/10 glass-card py-4 px-6 sm:px-10 sticky top-0 z-30">
+  <div class="flex items-center justify-between gap-3">
+    <a href="index.html"><img src="https://gkavanti.ru/logo-white.png" alt="GK Avanti" class="h-9 sm:h-12 w-auto object-contain"
+       onerror="this.onerror=null;this.src='https://placehold.co/180x50/18181b/ffffff?text=GK+AVANTI';"></a>
+    <div class="flex items-center gap-3 sm:gap-4">
+      <h1 class="text-lg sm:text-2xl font-bold uppercase tracking-wider text-white">Админ-панель</h1>
+      <button id="logout" hidden class="btn"><i class="fa-solid fa-right-from-bracket mr-2"></i>Выйти</button>
+    </div>
+  </div>
+</header>
+
+<!-- Вход -->
+<main id="login" hidden class="flex-grow flex items-center justify-center p-4">
+  <form id="login-form" class="glass-card bg-zinc-900 rounded-2xl p-6 sm:p-8 w-full max-w-md shadow-2xl space-y-4">
+    <div class="flex items-center space-x-3 mb-2">
+      <div class="w-10 h-10 rounded-xl bg-zinc-800 border border-white/10 flex items-center justify-center"><i class="fa-solid fa-lock text-sm"></i></div>
+      <div><h2 class="font-semibold text-white">Доступ к системе</h2><p class="text-xs text-zinc-400">Введите пароль администратора</p></div>
+    </div>
+    <input id="pass" type="password" required placeholder="Пароль" class="inp font-mono" autocomplete="current-password">
+    <p id="login-err" class="hidden text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-xl p-3"></p>
+    <div class="flex justify-between items-center">
+      <a href="index.html" class="text-xs text-zinc-400 hover:text-white">← К таблице</a>
+      <button class="btn btn-w">Войти</button>
+    </div>
+  </form>
+</main>
+
+<!-- Панель -->
+<main id="panel" hidden class="w-full flex-grow px-4 sm:px-8 lg:px-10 py-6 sm:py-8 space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <button id="add-btn" class="btn btn-w"><i class="fa-solid fa-user-plus mr-2"></i>Добавить участника</button>
+    <a href="index.html" class="btn">Публичная таблица</a>
+  </div>
+
+  <section>
+    <h2 class="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-400 mb-3 px-1">Последние 5 участников</h2>
+    <div class="glass-card rounded-2xl overflow-hidden shadow-2xl"><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><tbody id="recent" class="divide-y divide-white/5"></tbody></table></div></div>
+  </section>
+
+  <section class="glass-card rounded-2xl overflow-hidden shadow-2xl"><div class="overflow-x-auto"><table class="w-full text-left border-collapse">
+    <thead><tr class="bg-zinc-900/90 text-zinc-400 text-xs sm:text-sm font-semibold uppercase tracking-wider border-b border-white/10">
+      <th class="py-4 px-4 sm:px-8 w-16 sm:w-24 text-center">№</th><th class="py-4 px-4 sm:px-8">Участник</th>
+      <th class="py-4 px-4 sm:px-8">Город</th><th class="py-4 px-4 sm:px-8 text-right">Время</th><th class="py-4 px-4 sm:px-8"></th></tr></thead>
+    <tbody id="board" class="divide-y divide-white/5"></tbody>
+  </table></div></section>
+
+</main>
+
+<dialog id="add-dlg"><form id="add-form" class="glass-card bg-zinc-900 rounded-2xl p-6 space-y-4">
+  <h3 class="font-semibold text-white">Новый участник</h3>
+  <input id="a-name" required maxlength="80" placeholder="Имя" class="inp">
+  <input id="a-city" required maxlength="60" placeholder="Город" class="inp">
+  <div class="flex justify-end gap-3"><button type="button" class="btn" data-close>Отмена</button><button class="btn btn-w">Добавить</button></div>
+</form></dialog>
+
+<dialog id="time-dlg"><form id="time-form" class="glass-card bg-zinc-900 rounded-2xl p-6 space-y-4">
+  <h3 class="font-semibold text-white">Время круга <span id="t-who" class="text-zinc-400 font-normal"></span></h3>
+  <input id="t-val" placeholder="01:12.340 (пусто — убрать время)" class="inp font-mono">
+  <p id="t-err" class="hidden text-xs text-red-300">Формат: М:СС.ммм, например 1:12.340</p>
+  <div class="flex justify-end gap-3"><button type="button" class="btn" data-close>Отмена</button><button class="btn btn-w">Сохранить</button></div>
+</form></dialog>
+
+<script type="module">
+import { auth, db, collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp,
+  signInWithEmailAndPassword, signOut, onAuthStateChanged, watch, boardRows, recentRows, parseTime, fmt } from "./app.js";
+const $ = id => document.getElementById(id);
+let list = [], unsub = null, curId = null;
+
+const render = () => {
+  $("board").innerHTML = boardRows(list, true);
+  $("recent").innerHTML = recentRows(list, true);
+};
+
+onAuthStateChanged(auth, u => {
+  $("login").hidden = !!u;
+  $("panel").hidden = !u;
+  $("logout").hidden = !u;
+  if (u && !unsub) unsub = watch(l => { list = l; render(); });
+  if (!u && unsub) { unsub(); unsub = null; list = []; }
+});
+
+$("login-form").onsubmit = async e => {
+  e.preventDefault(); $("login-err").classList.add("hidden");
+  try { await signInWithEmailAndPassword(auth, "admin@avanti.local", $("pass").value); $("pass").value = ""; }
+  catch { $("login-err").textContent = "Неверный пароль"; $("login-err").classList.remove("hidden"); }
+};
+$("logout").onclick = () => signOut(auth);
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
+
+// Добавление участника: окно закрывается сразу, список обновляется мгновенно (без перезагрузки)
+$("add-btn").onclick = () => { $("add-form").reset(); $("add-dlg").showModal(); $("a-name").focus(); };
+$("add-form").onsubmit = e => {
+  e.preventDefault();
+  const data = { name: $("a-name").value.trim(), city: $("a-city").value.trim(), timeMs: null, createdAt: serverTimestamp() };
+  $("add-dlg").close();
+  addDoc(collection(db, "participants"), data).catch(err => alert("Ошибка: " + err.message));
+};
+
+// Кнопки "время" и "удалить" — и в основной таблице, и в "Последних 5"
+const onAct = e => {
+  const b = e.target.closest("button[data-act]"); if (!b) return;
+  const p = list.find(x => x.id === b.dataset.id); if (!p) return;
+  if (b.dataset.act === "del") {
+    if (confirm(`Удалить участника «${p.name}»?`)) deleteDoc(doc(db, "participants", p.id)).catch(err => alert(err.message));
+  } else {
+    curId = p.id; $("t-who").textContent = "— " + p.name; $("t-err").classList.add("hidden");
+    $("t-val").value = p.timeMs != null ? fmt(p.timeMs) : ""; $("time-dlg").showModal(); $("t-val").select();
+  }
+};
+$("board").onclick = onAct;
+$("recent").onclick = onAct;
+
+$("time-form").onsubmit = e => {
+  e.preventDefault();
+  const v = $("t-val").value.trim(), ms = v ? parseTime(v) : null;
+  if (v && ms === null) return $("t-err").classList.remove("hidden");
+  $("time-dlg").close();
+  updateDoc(doc(db, "participants", curId), { timeMs: ms }).catch(err => alert("Ошибка: " + err.message));
+};
+</script>
+</body>
+</html>
