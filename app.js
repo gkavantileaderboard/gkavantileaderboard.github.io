@@ -58,13 +58,13 @@ export function boardRows(list, admin) {
   const rated = list.filter(p => p.timeMs != null).sort((a, b) => a.timeMs - b.timeMs);
   const rows = rated.map((p, i) => {
     const b = BADGE[i];
-    const badge = b ? `<span class="w-8 h-8 rounded-lg rank-${b[0]} inline-flex items-center justify-center text-xs"><i class="fa-solid fa-${b[1]}"></i></span>` : "";
-    const rank = `<span class="inline-flex items-center justify-center"><span class="w-6 text-center font-mono text-zinc-300 font-semibold text-base sm:text-lg">${i + 1}</span><span class="w-8 h-8 ml-4 sm:ml-6 inline-flex items-center justify-center">${badge}</span></span>`;
-    return `<tr><td class="${TD} text-center">${rank}</td>${idc(p)}${name(p)}${city(p)}${time(p, "t-" + (i < 3 ? i + 1 : 0))}${admin ? acts(p) : ""}</tr>`;
+    const badge = b ? `<span class="w-8 h-8 rounded-lg rank-${b[0]} inline-flex items-center justify-center text-xs"><i class="fa-solid fa-trophy"></i></span>` : "";
+    const num = `<td class="py-4 pl-4 pr-3 sm:pl-8 text-right w-12 font-mono text-zinc-300 font-semibold text-base sm:text-lg">${i + 1}</td><td class="py-4 pr-4 sm:pr-8 pl-3 text-left w-14">${badge}</td>`;
+    return `<tr>${num}${idc(p)}${name(p)}${city(p)}${time(p, "t-" + (i < 3 ? i + 1 : 0))}${admin ? acts(p) : ""}</tr>`;
   });
   list.filter(p => p.timeMs == null).forEach(p =>
-    rows.push(`<tr><td class="${TD} text-center text-zinc-600">—</td>${idc(p)}${name(p)}${city(p)}${time(p, "t-0")}${admin ? acts(p) : ""}</tr>`));
-  return rows.join("") || `<tr><td colspan="6" class="py-10 text-center text-zinc-500">Пока нет результатов</td></tr>`;
+    rows.push(`<tr><td colspan="2" class="${TD} text-center text-zinc-600">—</td>${idc(p)}${name(p)}${city(p)}${time(p, "t-0")}${admin ? acts(p) : ""}</tr>`));
+  return rows.join("") || `<tr><td colspan="7" class="py-10 text-center text-zinc-500">Пока нет результатов</td></tr>`;
 }
 
 // Последние 5 добавленных участников
