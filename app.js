@@ -58,8 +58,8 @@ export function boardRows(list, admin) {
   const rated = list.filter(p => p.timeMs != null).sort((a, b) => a.timeMs - b.timeMs);
   const rows = rated.map((p, i) => {
     const b = BADGE[i];
-    const rank = b ? `<span class="w-8 h-8 rounded-lg rank-${b[0]} inline-flex items-center justify-center text-xs"><i class="fa-solid fa-${b[1]}"></i></span>`
-      : `<span class="font-mono text-zinc-400 font-semibold">${i + 1}</span>`;
+    const badge = b ? `<span class="w-8 h-8 rounded-lg rank-${b[0]} inline-flex items-center justify-center text-xs"><i class="fa-solid fa-${b[1]}"></i></span>` : "";
+    const rank = `<span class="inline-flex items-center justify-center"><span class="w-6 text-center font-mono text-zinc-300 font-semibold text-base sm:text-lg">${i + 1}</span><span class="w-8 h-8 ml-4 sm:ml-6 inline-flex items-center justify-center">${badge}</span></span>`;
     return `<tr><td class="${TD} text-center">${rank}</td>${idc(p)}${name(p)}${city(p)}${time(p, "t-" + (i < 3 ? i + 1 : 0))}${admin ? acts(p) : ""}</tr>`;
   });
   list.filter(p => p.timeMs == null).forEach(p =>
