@@ -42,7 +42,10 @@
 <!-- Панель -->
 <main id="panel" hidden class="w-full flex-grow px-4 sm:px-8 lg:px-10 py-6 sm:py-8 space-y-6">
   <div class="flex flex-wrap items-center justify-between gap-3">
-    <button id="add-btn" class="btn btn-w"><i class="fa-solid fa-user-plus mr-2"></i>Добавить участника</button>
+    <div class="flex flex-wrap items-center gap-3">
+      <button id="add-btn" class="btn btn-w"><i class="fa-solid fa-user-plus mr-2"></i>Добавить участника</button>
+      <button id="wipe-btn" class="btn btn-red"><i class="fa-solid fa-trash-can mr-2"></i>Удалить всех</button>
+    </div>
     <a href="index.html" class="btn">Публичная таблица</a>
   </div>
 
@@ -50,6 +53,14 @@
     <h2 class="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-400 mb-3 px-1">Последние 5 участников</h2>
     <div class="glass-card rounded-2xl overflow-hidden shadow-2xl"><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><tbody id="recent" class="divide-y divide-white/5"></tbody></table></div></div>
   </section>
+
+  <div class="flex flex-wrap items-center justify-between gap-3 px-1">
+    <h2 class="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-400">Все участники <span id="count" class="text-zinc-600 font-mono normal-case"></span></h2>
+    <div class="relative w-full sm:w-80">
+      <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 text-xs"></i>
+      <input id="search" type="search" autocomplete="off" placeholder="Поиск: имя, город или ID" class="inp" style="padding-left:2.3rem">
+    </div>
+  </div>
 
   <section class="glass-card rounded-2xl overflow-hidden shadow-2xl"><div class="overflow-x-auto"><table class="w-full text-left border-collapse">
     <thead><tr class="bg-zinc-900/90 text-zinc-400 text-xs sm:text-sm font-semibold uppercase tracking-wider border-b border-white/10">
@@ -74,6 +85,19 @@
   <p id="t-err" class="hidden text-xs text-red-300">Формат: М:СС.ммм, например 1:12.340</p>
   <div class="flex justify-end gap-3"><button type="button" class="btn" data-close>Отмена</button><button class="btn btn-w">Сохранить</button></div>
 </form></dialog>
+
+<dialog id="wipe-dlg"><div class="glass-card bg-zinc-900 rounded-2xl p-6 space-y-4 border-red-500/30">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-400"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <h3 id="w-title" class="font-semibold text-white"></h3>
+  </div>
+  <p id="w-text" class="text-sm text-zinc-300"></p>
+  <p class="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-xl p-3">Это действие нельзя отменить.</p>
+  <div class="flex justify-end gap-3">
+    <button type="button" class="btn" data-close>Отмена</button>
+    <button type="button" id="w-ok" class="btn btn-red-solid" disabled></button>
+  </div>
+</div></dialog>
 
 <script type="module">
 import { auth, db, collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp,
@@ -104,9 +128,13 @@ const migrate = async () => {
 };
 
 const render = () => {
-  $("board").innerHTML = boardRows(list, true);
+  const q = $("search").value;
+  $("board").innerHTML = boardRows(list, true, q);
   $("recent").innerHTML = recentRows(list, true);
+  $("count").textContent = list.length ? `(${list.length})` : "";
+  $("wipe-btn").disabled = !list.length;
 };
+$("search").addEventListener("input", render);
 
 onAuthStateChanged(auth, u => {
   $("login").hidden = !!u;
@@ -146,6 +174,52 @@ const onAct = e => {
 };
 $("board").onclick = onAct;
 $("recent").onclick = onAct;
+
+// Удаление всех участников: два подтверждения, каждое доступно только через 5 секунд
+const WIPE_STEPS = [
+  { title: "Удалить всех участников?", text: n => `Будут удалены все участники (${n}) вместе с их временем.`, ok: "Подтвердить" },
+  { title: "ТОЧНО?!", text: n => `Последний шанс. После подтверждения все ${n} участников исчезнут навсегда.`, ok: "Да, удалить всех" },
+];
+let wipeStep = 0, wipeTimer = null;
+const stopWipeTimer = () => { clearInterval(wipeTimer); wipeTimer = null; };
+const showWipeStep = i => {
+  stopWipeTimer();
+  wipeStep = i;
+  const s = WIPE_STEPS[i], ok = $("w-ok");
+  $("w-title").textContent = s.title;
+  $("w-text").textContent = s.text(list.length);
+  let left = 5;
+  ok.disabled = true;
+  ok.textContent = `${s.ok} (${left})`;
+  wipeTimer = setInterval(() => {
+    if (--left > 0) { ok.textContent = `${s.ok} (${left})`; return; }
+    stopWipeTimer();
+    ok.textContent = s.ok;
+    ok.disabled = false;
+  }, 1000);
+};
+$("wipe-btn").onclick = () => {
+  if (!list.length) return;
+  showWipeStep(0);
+  $("wipe-dlg").showModal();
+  $("w-ok").blur();
+};
+$("wipe-dlg").addEventListener("close", stopWipeTimer); // Отмена / Esc сбрасывает таймер
+$("w-ok").onclick = async () => {
+  if ($("w-ok").disabled) return;
+  if (wipeStep === 0) return showWipeStep(1);
+  const ids = list.map(p => p.id);
+  $("w-ok").disabled = true;
+  $("w-ok").textContent = "Удаление…";
+  try {
+    await Promise.all(ids.map(id => deleteDoc(doc(db, "participants", id))));
+    $("wipe-dlg").close();
+    $("search").value = "";
+  } catch (err) {
+    alert("Ошибка: " + err.message);
+    $("wipe-dlg").close();
+  }
+};
 
 $("time-form").onsubmit = e => {
   e.preventDefault();

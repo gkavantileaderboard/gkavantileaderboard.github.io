@@ -54,17 +54,23 @@ const acts = p => `<td class="${TD} text-right whitespace-nowrap">
   <button data-act="del" data-id="${p.id}" class="btn text-red-400" title="Удалить"><i class="fa-solid fa-trash"></i></button></td>`;
 
 // Основной лидерборд: сначала участники с временем по местам, затем все без времени (прочерк)
-export function boardRows(list, admin) {
+// q — необязательная строка поиска (имя, город или ID); места остаются настоящими
+export function boardRows(list, admin, q = "") {
+  q = String(q).trim().toLowerCase();
+  const hit = p => !q || [p.name, p.city, p.seqId].some(v => String(v ?? "").toLowerCase().includes(q));
   const rated = list.filter(p => p.timeMs != null).sort((a, b) => a.timeMs - b.timeMs);
-  const rows = rated.map((p, i) => {
+  const rows = [];
+  rated.forEach((p, i) => {
+    if (!hit(p)) return;
     const b = BADGE[i];
     const badge = b ? `<span class="w-8 h-8 rounded-lg rank-${b[0]} inline-flex items-center justify-center text-xs"><i class="fa-solid fa-trophy"></i></span>` : "";
     const num = `<td class="py-4 pl-4 pr-2 sm:pl-8 text-right w-14">${badge}</td><td class="py-4 pr-4 sm:pr-8 pl-2 text-left w-12 font-mono text-zinc-300 font-semibold text-base sm:text-lg">${i + 1}</td>`;
-    return `<tr>${num}${idc(p)}${name(p)}${city(p)}${time(p, "t-" + (i < 3 ? i + 1 : 0))}${admin ? acts(p) : ""}</tr>`;
+    rows.push(`<tr>${num}${idc(p)}${name(p)}${city(p)}${time(p, "t-" + (i < 3 ? i + 1 : 0))}${admin ? acts(p) : ""}</tr>`);
   });
-  list.filter(p => p.timeMs == null).forEach(p =>
+  list.filter(p => p.timeMs == null && hit(p)).forEach(p =>
     rows.push(`<tr><td colspan="2" class="${TD} text-center text-zinc-600">—</td>${idc(p)}${name(p)}${city(p)}${time(p, "t-0")}${admin ? acts(p) : ""}</tr>`));
-  return rows.join("") || `<tr><td colspan="7" class="py-10 text-center text-zinc-500">Пока нет результатов</td></tr>`;
+  const empty = q ? "Ничего не найдено" : "Пока нет результатов";
+  return rows.join("") || `<tr><td colspan="7" class="py-10 text-center text-zinc-500">${empty}</td></tr>`;
 }
 
 // Последние 5 добавленных участников

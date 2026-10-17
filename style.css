@@ -21,3 +21,9 @@ dialog::backdrop{background:rgba(0,0,0,.8);backdrop-filter:blur(4px)}
 .btn:hover{background:rgba(255,255,255,.06);color:#fff}
 .btn-w{background:#fff;color:#000;border-color:#fff;font-weight:600}
 .btn-w:hover{background:#e4e4e7;color:#000}
+.btn-red{color:#f87171;border-color:rgba(248,113,113,.35)}
+.btn-red:hover{background:rgba(239,68,68,.12);color:#fca5a5}
+.btn-red-solid{background:#dc2626;color:#fff;border-color:#dc2626;font-weight:600;min-width:9.5rem}
+.btn-red-solid:hover{background:#b91c1c;color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+.inp[type=search]::-webkit-search-cancel-button{filter:invert(1)}
